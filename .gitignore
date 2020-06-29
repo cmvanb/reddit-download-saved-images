@@ -4,6 +4,9 @@
 # vs code
 .vscode
 
+# vim
+.swp
+
 # input files
 input/
 
