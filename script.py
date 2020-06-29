@@ -82,6 +82,11 @@ def download_saved_images():
     authorization = token_type + ' ' + access_token
 
     # ---- Get user's saved posts ----------------------------------------------
+    # TODO: Currently, this only retrieves the most recent 25 saved posts.
+    # The script should retrieve all saved image posts, optionally filter them
+    # (e.g. by image size, subreddit), download the images, and then optionally
+    # unsave the posts.
+    # https://www.reddit.com/dev/api
 
     url      = 'https://oauth.reddit.com/user/' + username + '/saved'
     headers  = { 'Authorization': authorization, 'User-Agent': user_agent }
