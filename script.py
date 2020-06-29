@@ -5,6 +5,8 @@ def download_saved_images():
     import configparser
     import requests
     import requests.auth
+    import io
+    import json
 
     # ---- Config -------------------------------------------------------------
 
@@ -33,15 +35,18 @@ def download_saved_images():
 
     authorization = token_type + ' ' + access_token
 
-    # ---- Get user data ------------------------------------------------------
+    # ---- Get user's saved posts ---------------------------------------------
 
-    url      = 'https://oauth.reddit.com/api/v1/me'
+    url      = 'https://oauth.reddit.com/user/' + username + '/saved'
     headers  = { 'Authorization': authorization, 'User-Agent': user_agent }
     response = requests.get(url, headers=headers)
 
     data = response.json()
-    print(data)
 
+    output_file = 'output/saved_posts.json'
+    data_unicode = unicode(json.dumps(data))
+    with io.open(output_file, 'w', encoding='utf-8') as f:
+        f.write(data_unicode)
 
 # -----------------------------------------------------------------------------
 # Entry point
