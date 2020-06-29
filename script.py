@@ -121,6 +121,4 @@ def download_saved_images():
 # Entry point
 # ------------------------------------------------------------------------------
 if __name__ == '__main__':
-    import sys
-
     download_saved_images()
