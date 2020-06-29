@@ -19,13 +19,13 @@ def download_saved_images():
     # ---- Get access token ---------------------------------------------------
 
     url = 'https://www.reddit.com/api/v1/access_token'
-
     client_auth = requests.auth.HTTPBasicAuth(app_token, app_secret)
+    payload = { 'grant_type': 'password', 'username': username, 'password': password }
+    headers = { 'User-Agent': 'DownloadImages script' }
 
-    req = requests.get(url)
+    response = requests.post(url, auth=client_auth, data=payload, headers=headers)
 
-    data = req.text
-
+    data = response.json()
     print(data)
 
 
