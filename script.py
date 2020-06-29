@@ -1,12 +1,12 @@
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Globals
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png']
 
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Utility
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 def index_of(value, list):
     try:
@@ -17,24 +17,36 @@ def index_of(value, list):
 def contains(value, list):
     return index_of(value, list) != -1
 
+def get_file_extension(url):
+    return url.rpartition('.')[-1]
+
 def is_url_image(url):
     try:
-        file_extension = url.rpartition('.')[-1]
+        file_extension = get_file_extension(url)
         return contains(file_extension, IMAGE_EXTENSIONS)
     except:
         return False
 
-# -----------------------------------------------------------------------------
+def download_image(url, path):
+    import requests
+    import io
+
+    response = requests.get(url, stream=True)
+
+    if response.status_code == 200:
+        with io.open(path, 'wb') as f:
+            for chunk in response:
+                f.write(chunk)
+
+# ------------------------------------------------------------------------------
 # Download user's saved images
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 def download_saved_images():
     import configparser
     import requests
     import requests.auth
-    import io
-    import json
 
-    # ---- Config -------------------------------------------------------------
+    # ---- Config --------------------------------------------------------------
 
     config = configparser.RawConfigParser()
     config.read('input/credentials.ini')
@@ -49,7 +61,7 @@ def download_saved_images():
 
     user_agent = 'DownloadImages script'
 
-    # ---- Get access token ---------------------------------------------------
+    # ---- Get access token ----------------------------------------------------
 
     url         = 'https://www.reddit.com/api/v1/access_token'
     client_auth = requests.auth.HTTPBasicAuth(app_token, app_secret)
@@ -69,7 +81,7 @@ def download_saved_images():
 
     authorization = token_type + ' ' + access_token
 
-    # ---- Get user's saved posts ---------------------------------------------
+    # ---- Get user's saved posts ----------------------------------------------
 
     url      = 'https://oauth.reddit.com/user/' + username + '/saved'
     headers  = { 'Authorization': authorization, 'User-Agent': user_agent }
@@ -78,30 +90,32 @@ def download_saved_images():
     json_response = response.json()
     posts         = json_response['data']['children']
 
-    # ---- Filter posts -------------------------------------------------------
+    # ---- Filter posts --------------------------------------------------------
 
     filtered_posts = filter(lambda post: post['data']['subreddit'] == subreddit, posts)
+    target_urls = {}
 
     for post in filtered_posts:
-        url = post['data']['url']
+        title = post['data']['title']
+        url   = post['data']['url']
         if is_url_image(url):
             print(url + ' is an image!')
-            # TODO: download image
+            target_urls[title] = url
 
-    # output_file   = 'output/saved_posts.json'
-    # json_unicode  = unicode(json.dumps(json_response))
+    # ---- Download image posts ------------------------------------------------
 
-    # with io.open(output_file, 'w', encoding='utf-8') as f:
-    #     f.write(json_unicode)
+    for title, url in target_urls.iteritems():
+        try:
+            file_extension = get_file_extension(url)
+            file_name      = title + '.' + file_extension
+            download_image(url, 'output/' + file_name)
+        except:
+            continue
 
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Entry point
-# -----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 if __name__ == '__main__':
     import sys
-
-    #if not sys.argv[1]:
-    #    print 'ERROR: Missing command line argument: recipeId'
-    #    sys.exit(1)
 
     download_saved_images()
